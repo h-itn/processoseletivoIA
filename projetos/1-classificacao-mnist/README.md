@@ -39,15 +39,11 @@ Implemente:
 
 Implemente:
 
-- Carregamento especificamente do **`model.tflite`** (o artefato de edge — não
-  o `model.h5`) usando `tf.lite.Interpreter`
+- Carregamento especificamente do **`model.tflite`** (o artefato de edge — não o `model.h5`) usando `tf.lite.Interpreter`
 - Execução de inferência em pelo menos **5 amostras** do conjunto de teste
 - Exibição no terminal, para cada amostra, da classe **predita** vs. a classe **real**
 
-> 💡 Essa etapa existe porque uma métrica agregada (accuracy) pode esconder
-> problemas que só aparecem olhando exemplos individuais. Também é o teste mais
-> próximo do uso real em produção: carregar o artefato de edge e classificar
-> uma entrada por vez.
+> 💡 Essa etapa existe porque uma métrica agregada (accuracy) pode esconder problemas que só aparecem olhando exemplos individuais. Também é o teste mais próximo do uso real em produção: carregar o artefato de edge e classificar uma entrada por vez.
 
 **Objetivo:** reduzir o tamanho do modelo, mantendo desempenho adequado para aplicações de Edge AI.
 
@@ -63,7 +59,7 @@ projetos/1-classificacao-mnist/
 ├── requirements.txt       # 📄 Dependências do projeto
 ├── model.h5               # 🤖 Gerado por você — deve ser commitado
 ├── model.tflite           # ⚡ Gerado por você — deve ser commitado
-└── README.md               # 📝 Este arquivo (também usado como relatório)
+└── README.md              # 📝 Este arquivo (também usado como relatório)
 ```
 
 ## ⚠️ Restrições e Considerações de Engenharia
@@ -85,28 +81,43 @@ projetos/1-classificacao-mnist/
 
 ## 📝 Relatório do Candidato
 
-👤 **Nome Completo:**
+👤 **Nome Completo:** Hailton Gabriel de Souza Conceição
 
 ### 1️⃣ Resumo da Arquitetura do Modelo
 
-Descreva, em palavras, a arquitetura da CNN implementada em `train_model.py` (número de blocos convolucionais, uso de batch normalization/dropout, estratégia de validação/early stopping).
+Foi desenvolvida uma Rede Neural Convolucional (CNN) composta por blocos convolucionais (`Conv2D` + `MaxPooling2D`), seguida por uma camada de `Flatten`, `Dense` com ativação ReLU e `Dropout` para regularização e prevenção de overfitting. A camada de saída conta com 10 neurônios com ativação Softmax para classificação dos dígitos de 0 a 9. O treinamento utilizou o otimizador Adam, perda `sparse_categorical_crossentropy` e parada antecipada com `EarlyStopping`.
 
 ### 2️⃣ Bibliotecas Utilizadas
 
-Liste as principais bibliotecas utilizadas, preferencialmente com suas versões.
+- Python 3.11+
+- TensorFlow / `tf_keras`
+- NumPy
 
 ### 3️⃣ Técnica de Otimização do Modelo
 
-Explique qual técnica foi utilizada para otimizar o modelo em `optimize_model.py`.
+A otimização em `optimize_model.py` foi realizada utilizando a técnica de **Dynamic Range Quantization** via `tf.lite.TFLiteConverter`. Essa técnica reduz a precisão dos pesos do modelo para inteiros de 8 bits (int8) durante o armazenamento, mantendo a inferência rápida e diminuindo drasticamente o consumo de memória em dispositivos Edge.
 
 ### 4️⃣ Resultados Obtidos
 
-Informe a acurácia de validação obtida e o tamanho dos arquivos `model.h5` e `model.tflite`.
+- **Acurácia de Validação:** ~98%
+- **Tamanho do arquivo `model.h5`:** 4.1 MB
+- **Tamanho do arquivo `model.tflite`:** 346 KB (redução de aproximadamente 91% no tamanho)
 
 ### 5️⃣ Comentários Adicionais (Opcional)
 
-Dificuldades encontradas, decisões técnicas importantes, limitações do modelo, aprendizados durante o desafio.
+Durante o desenvolvimento do pipeline, o ponto mais relevante foi garantir a compatibilidade de conversão e desserialização Keras entre versões do ambiente de desenvolvimento (Codespaces com Keras 3) e a esteira de validação automatizada em CI/CD no GitHub Actions (Keras 2 / legacy format).
 
 ### 6️⃣ Exemplo de Inferência
 
-Cole a saída do terminal ao rodar `run_inference.py` (predito vs. real para as 5+ amostras), e comente brevemente se houve algum caso interessante (acerto ou erro) entre as amostras testadas.
+Saída gerada no terminal pela execução do script `run_inference.py`:
+
+```text
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+Rodando inferencia em 5 amostras usando model.tflite:
+
+Amostra 1: predito=7 | real=7
+Amostra 2: predito=2 | real=2
+Amostra 3: predito=1 | real=1
+Amostra 4: predito=0 | real=0
+Amostra 5: predito=4 | real=4
+
